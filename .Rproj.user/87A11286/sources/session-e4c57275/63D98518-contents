@@ -6,14 +6,22 @@ categories: [R, code, tidyverse, dplyr]
 #image: "image.jpg"
 ---
 
-The dplyr `coalesce` function is an incredibly useful function that I use often. It is similar to the SQL `COALESCE` function, another function that I use often. Given a set of vectors, it finds and keeps the first non `NA` value at each position. For example, the following code return the vector `c(1, 2, 3, 4)`.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+```
+
+The dplyr `coalesce` function is incredibly useful and similar to the SQL `COALESCE` function. Given a set of vectors, it finds and keeps the first non-`NA` value at each position. For example, the following code returns the vector c(1, 2, 3, 4).
 
 ```{r}
+
 library(dplyr)
 coalesce(c(1, NA, 3, NA), c(2, 2, 4, 4))
 ```
 
-At position 1, the first non-NA value is 1 (from the first vector). At position 2, the first non-NA value is 2 (from the second vector, because the value at position 2 in the first vector is NA). At position 3, the first non-NA value is 3 (from the first vector). Finally, at position 4, the first non-NA value is 4 (from the second vector, because the value at position 4 in the first vector is NA).
+* At position 1, the first non-`NA` value is 1 (from the first vector).
+* At position 2, the first non-`NA` value is 2 (from the second vector, because the value at position 2 in the first vector is NA).
+* At position 3, the first non-`NA` value is 3 (from the first vector).
+* Finally, at position 4, the first non-`NA` value is 4 (from the second vector, because the value at position 4 in the first vector is NA).
 
 The `coalesce` function is not limited to two vectors. You can use as many vectors as you'd like.
 
@@ -33,7 +41,7 @@ Is equivalent to:
 dplyr::coalesce(c(1, NA, NA, 5), c(3, 3, 3, 3))
 ```
 
-I most often use `coalesce` to replace all NA's in a vector by a single value. For example, the following code replaces all NAs with 0:
+I most often use `coalesce` to replace all `NA` values in a vector with a single value. For example, the following code replaces all `NA` values with 0:
 
 ```{r}
 coalesce(c(1, NA, NA, 5, 6), 0)
@@ -51,21 +59,26 @@ x <- c(1, NA, NA, 5, 6)
 ifelse(is.na(x), 0, x)
 ```
 
-Of the three options I have shown so far, I prefer `coalesce` and `replace_na` (`coalesce` is a more general version of `replace_na`; `replace_na` takes a vector and a single value to replace the NAs in that vector with). Let's compare the speed of all three:
+Of the three options I have shown so far, I prefer `coalesce` and `replace_na`. (`coalesce` is a more general version of `replace_na`; `replace_na` takes a vector and a single value to replace the `NA` values in that vector with). If you want to go outside of base R and the tidyverse, `data.table::fcoalesce` is a much faster version of `dplyr::coalesce`.
+
+Let's compare the speeds!
 
 ```{r}
+library(microbenchmark)
+library(data.table)
 set.seed(11)
 x <- 1:10^7
 x[sample(1:10^7, size = 10^6, replace = FALSE)] <- NA
-microbenchmark::microbenchmark(
-  coalesce(x, 0),
-  replace_na(x, 0),
-  ifelse(is.na(x), 0, x),
+microbenchmark(
+  fcoalesce(x, 0L),
+  coalesce(x, 0L),
+  replace_na(x, 0L),
+  ifelse(is.na(x), 0L, x),
   times = 5
   )
 ```
 
-`replace_na` is the fastest. I still tend to use `coalesce` for replacing all NAs in a vector with a single, specific value. I am the only person on my work team who uses R, but my team members use SQL and recognize the name `coalesce` in my code. For small to medium size vectors, each function runs super quick. Also, of the three methods above, `coalesce` is the most general, since it isn't limited to the case of replacing all NAs with a single value.
+`data.table:fcoalesce` is the winner in terms of speed, followed by `replace_na`. I still tend to use `coalesce` for replacing all `NA` values in a vector with a single, specific value. I am the only person on my work team who uses R, but my team members use SQL and recognize the name `coalesce` in my code.  For small to medium-sized vectors, each function runs super quickly. Also, of the four methods above, `coalesce` and `fcoalesce` are the most general, since they are not limited to replacing all `NA` values with a single value.
 
 Is there a base R equivalent to `dplyr::coalesce`? No. But we can easily create one using just base R code.
 
@@ -77,7 +90,7 @@ y <- c(2, 2, 3, NA)
 coalesce(x, y)
 ```
 
-How could we get the same results using the `ifelse` function? It's simple. We return the value in y when the value in x is NA.
+How could we get the same results using the `ifelse` function? It's simple. We return the value in `y` when the value in `x` is `NA`.
 
 ```{r}
 ifelse(is.na(x), y, x)
@@ -90,32 +103,32 @@ z <- c(4, 4, 4, 4)
 coalesce(x, y, z)
 ```
 
-We can start with our code from the case where we are using two vectors.
+We can start with our code from the case where we used two vectors.
 
 ```{r}
 output_step_1 <- ifelse(is.na(x), y, x)
 ```
 
-When both x and y are NA (when `ifelse(is.na(x), y, x)` gives us NA), we want to use what is in z. Otherwise we want to keep the the results from step 1 above.
+When both `x` and `y` are `NA` (when `ifelse(is.na(x), y, x)` gives us `NA`), we want to use what is in z. Otherwise, we want to keep the results from step 1 above.
 
 ```{r}
 ifelse(is.na(output_step_1), z, output_step_1)
 ```
 
-That worked! But what if we want to generalize this to any number of input vectors? We can use the base R function `Reduce`. For our case where we used x, y, and z we could do:
+That worked! But what if we want to generalize this to any number of input vectors? We can use the base R function `Reduce`. For our case where we used `x`, `y`, and `z`, we could do:
 
 ```{r}
  Reduce(function(x, y) ifelse(is.na(x), y, x), list(x, y, z))
 
 ```
 
-`Reduce(f, list(x, y, z))`, where `f` is a function of two variables, is the equivalent of `f(f(x, y), z)`. And `Reduce(f, list(x, y, z, a))` is equivalent to `f(f(f(x, y), z), a)`. The `Reduce` function is used to iteratively apply a function to elements of a vector or list, reducing it to a single value. It takes a function with two parameters and applies it to the first two elements of the vector, then applies the same function to the result and the next element, and so on, until all elements are combined into a single value.
+`Reduce(f, list(x, y, z))`, where `f` is a function of two variables, is the equivalent of `f(f(x, y), z)`. And `Reduce(f, list(x, y, z, a))` is equivalent to `f(f(f(x, y), z), a)`. The Reduce function is used to iteratively apply a function to elements of a list, reducing it to a single value. It takes a function with two parameters and applies it to the first two elements of the list, then applies the same function to the result and the next element, and so on, until all elements are combined into a single value.
 
-To use `Reduce` to mimic `coalesce(x, y, z, ...)`, we need to apply the logic `f <- function(x, y) { ifelse(is.na(x), y, x)}` over and over starting from left to right. In other words, for three vectors x, y, and z, we need to do
+To use `Reduce` to mimic `coalesce(x, y, z, ...)`, we need to apply the logic `f <- function(x, y) { ifelse(is.na(x), y, x)}` over and over starting from left to right. In other words, for three vectors x, y, and z, we need to do:
 
 ```{r}
 f <- function(x, y) {
-  ifelse(is.na(x), y,)
+  ifelse(is.na(x), y, x)
 }
 f(f(x, y), z)
 
@@ -128,7 +141,7 @@ Which is equivalent to
 Reduce(f, list(x, y, z))
 ```
 
-So a very simple base R equivalent to the `coalesce` function is:
+So a very simple base R function equivalent to the `coalesce` function is:
 
 ```{r}
 coalesce_base_r <- function(...) {
@@ -137,7 +150,7 @@ coalesce_base_r <- function(...) {
 }
 ```
 
-Let's see how if it produces identical results to `dplyr::coalesce`:
+Let's see if it produces identical results to `dplyr::coalesce`:
 
 ```{r}
 set.seed(11)
@@ -145,7 +158,7 @@ x <- 1:10^7
 y <- 1:10^7
 x[sample(1:10^7, size = 10^6, replace = FALSE)] <- NA
 y[sample(1:10^7, size = 10^6, replace = FALSE)] <- NA
-z <- 1
+z <- 1L
 
 dplyr_result <- coalesce(x, y, z)
 base_r_result <- coalesce_base_r(x, y, z)
@@ -159,22 +172,20 @@ We get identical results!
 Let's compare the speed:
 
 ```{r}
-microbenchmark::microbenchmark(coalesce(x, y, z), coalesce_base_r(x, y, z), times = 5)
+microbenchmark(coalesce(x, y, z), coalesce_base_r(x, y, z), times = 5)
 ```
 
-Our base R version of `coalesce` is faster than dplyr's!
+Our base R version of `coalesce` is almost identical in speed dplyr's!
 
 But our function contains some flaws. dplyr's `coalesce` function forces the vectors passed to it to either be of the same length or be of length 1. If we try:
 
 ```{r}
-coalesce(c(1, 2, 3, NA, 6), c(4, 5 ))
+#| error: true
+coalesce(c(1, 2, 3, NA, 6), c(4, 5))
 ```
 
 We get an error, since the first vector has length 5 and the second has length 2.
 
-```{r}
-
-```
 
 Here's a better base R version of `coalesce`:
 
@@ -193,27 +204,32 @@ coalesce_base <- function(...) {
   # Determine the maximum length
   max_length <- max(lengths)
   
-  # Check if lengths are consistent. Only allow vectors of length equal to max length or length of 1
+  # Check if lengths are consistent. 
+  # Only allow vectors of length equal to max length or length of 1
   if (any(lengths != max_length & lengths != 1)) {
-    stop("All arguments must have the same length, except for vectors of length 1 which can be recycled")
+    stop("All arguments must have the same length, 
+         except for vectors of length 1 which can be recycled")
   }
   
   # Use Reduce with ifelse to coalesce
-  Reduce(function(x, y) ifelse(is.na(x), if (length(y) == 1) rep(y, length(x)) else y, x), args)
+  Reduce(function(x, y) ifelse(is.na(x), y, x), args)
 }
 
 # Example usage:
-x <- c(NA, 2, NA, 4, NA)
-y <- c(1, NA, 3, NA, NA)
-z <- 0
+v1 <- c(NA, 2, NA, 4, NA)
+v2 <- c(1, NA, 3, NA, NA)
+v3 <- 0
 
-coalesce_base(x, y, z)
+coalesce_base(v1, v2, v3)
 ```
 
-Again, let's compare the speed of our function to `dplyr::coalesce`
+Again, let's compare the speed of our function to `dplyr::coalesce` and `data.table::fcoalesce`.
 
 ```{r}
-microbenchmark::microbenchmark(coalesce(x, y, z), coalesce_base_r(x, y, z), times = 5)
+microbenchmark(fcoalesce(x, y, z),
+               coalesce(x, y, z), 
+               coalesce_base_r(x, y, z), 
+               times = 5)
 ```
 
-Our function is much faster than `dplyr::coalesce`!
+`data.table::fcoalesce` is the clear winner when it comes to speed! Our function is almost identical in speed to `dplyr::coalesce`! 

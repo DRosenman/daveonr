@@ -1,0 +1,20 @@
+# R related
+.Rhistory
+.RData
+.Rproj.user/
+.Renviron
+.Rprofile
+
+# RStudio project files
+.Rproj.user/
+
+# Quarto temporary files
+_site/
+_book/
+.quarto/
+
+# Common system and editor files
+.DS_Store
+.vscode/
+node_modules/
+/.quarto/
