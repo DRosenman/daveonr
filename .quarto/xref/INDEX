@@ -1,0 +1,17 @@
+{
+  "index.qmd": {
+    "index.html": "8398dcc2"
+  },
+  "about.qmd": {
+    "about.html": "f57cd8bd"
+  },
+  "posts/post-with-code/index.qmd": {
+    "index.html": "5b8792e1"
+  },
+  "posts/welcome/index.qmd": {
+    "index.html": "a2d9494f"
+  },
+  "posts/base-r-equivalents-of-dplyr-functions-part-1-coalesce/index.qmd": {
+    "index.html": "2dfa8ef9"
+  }
+}

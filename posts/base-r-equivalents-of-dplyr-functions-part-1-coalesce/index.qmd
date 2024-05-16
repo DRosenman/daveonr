@@ -1,0 +1,104 @@
+---
+title: "Base R Equivalents of dplyr Functions Part 1 - coalesce"
+author: "Dave Rosenman"
+date: "2024-05-16"
+categories: [R, code, tidyverse, dplyr]
+#image: "image.jpg"
+---
+
+The dplyr `coalesce` function is an incredibly useful function that I use often. It is similar to the SQL `COALESCE` function, another function that I use often. Given a set of vectors, it finds and keeps the first non `NA` value at each position. For example, the following code return the vector `c(1, 2, 3, 4)`.
+
+```{r}
+library(dplyr)
+coalesce(c(1, NA, 3, NA), c(2, 2, 4, 4))
+```
+
+At position 1, the first non-NA value is 1 (from the first vector). At position 2, the first non-NA value is 2 (from the second vector, because the value at position 2 in the first vector is NA). At position 3, the first non-NA value is 3 (from the first vector). Finally, at position 4, the first non-NA value is 4 (from the second vector, because the value at position 4 in the first vector is NA). 
+
+The `coalesce` function is not limited to two vectors. You can use as many vectors as you'd like. 
+```{r}
+coalesce(c(1, 2, NA, NA), c(3, 3, 3, NA), c(4, 4, 4, 4))
+```
+
+The vectors must be of equal length or length 1. Vectors of length 1 will be recycled. The following:
+```{r}
+coalesce(c(1, NA, NA, 5), 3)
+```
+
+Is equivalent to:
+```{r}
+dplyr::coalesce(c(1, NA, NA, 5), c(3, 3, 3, 3))
+```
+
+I most often use `coalesce` to replace all NA's in a vector by a single value. For example, the following code replaces all NAs with 0:
+```{r}
+coalesce(c(1, NA, NA, 5, 6), 0)
+```
+
+Here are two alternative ways to do the same thing. 
+```{r}
+library(tidyr)
+replace_na(c(1, NA, NA, 5, 6), 0) # this function is in the tidyr package
+```
+
+```{r}
+x <- c(1, NA, NA, 5, 6)
+ifelse(is.na(x), 0, x)
+```
+
+Of the three options I have shown so far, I prefer `coalesce` and `replace_na` (`coalesce` is a more general version of `replace_na`; `replace_na` takes a vector and a single value to replace the NAs in that vector with). Let's compare the speed of all three:
+
+```{r}
+set.seed(11)
+x <- 1:10^7
+x[sample(1:10^7, size = 10^6, replace = FALSE)] <- NA
+microbenchmark::microbenchmark(
+  coalesce(x, 0),
+  replace_na(x, 0),
+  ifelse(is.na(x), 0, x),
+  times = 5
+  )
+```
+
+`replace_na` is the fastest. I still tend to use `coalesce` for replacing all NAs in a vector with a single, specific value. I am the only person on my work team who uses R, but my team members use SQL and recognize the name `coalesce` in my code. For small to medium size vectors, each function runs super quick. Also, of the three methods above, `coalesce` is the most general, since it isn't limited to the case of replacing all NAs with a single value. 
+
+
+Is there a base R equivalent to `dplyr::coalesce`? No. But we can easily create one using just base R code.
+ 
+To think about how we would do that, let's start with two vectors:
+```{r}
+x <- c(1, 2, NA, NA)
+y <- c(2, 2, 3, NA)
+coalesce(x, y)
+```
+How could we get the same results using the `ifelse` function? It's simple. We return the value in y when the value in x is NA. 
+```{r}
+ifelse(is.na(x), y, x)
+```
+That's simple enough. But what if we want to use three vectors?
+```{r}
+z <- c(4, 4, 4, 4)
+coalesce(x, y, z)
+```
+We can start with our code from the case where we are using two vectors.
+```{r}
+output_step_1 <- ifelse(is.na(x), y, x)
+```
+When both x and y are NA (when `ifelse(is.na(x), y, x)` gives us NA), we want to use what is in z. Otherwise we want to keep the the results from step 1 above.
+
+```{r}
+ifelse(is.na(output_step_1), z, output_step_1)
+```
+
+That worked! But what if we want to generalize this to any number of input vectors? We can use the base R function `Reduce`. For our case where we used x, y, and z we could do:
+
+```{r}
+ Reduce(function(x, y) ifelse(is.na(x), y, x), list(x, y, z))
+
+```
+
+`Reduce(f, list(x, y, z))`, where `f` is a function of two variables, is the equivalent of `f(f(x, y), z)`. And `Reduce(f, list(x, y, z, a))` is equivalent to `f(f(f(x, y), z), a)`. The `Reduce` function is used to iteratively apply a function to elements of a vector or list, reducing it to a single value. It takes a function with two parameters and applies it to the first two elements of the vector, then applies the same function to the result and the next element, and so on, until all elements are combined into a single value. 
+
+To use `Reduce` to mimic `coalesce(x, y, z, ...)`, we need to apply the logic `keep_second_if_first_is_na <- function(x, y) {
+ifelse(is.na(x), y, x)
+}` over and over starting from left to right. We apply it first to `x, y`, then ap
