@@ -13,5 +13,8 @@
   },
   "posts/base-r-equivalents-of-dplyr-functions-part-1-coalesce/index.qmd": {
     "index.html": "2dfa8ef9"
+  },
+  "posts/base-r-equivalents-of-dplyr-functions-part-2-case_when/index.qmd": {
+    "index.html": "0a4534b9"
   }
 }

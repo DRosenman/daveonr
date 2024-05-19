@@ -9,7 +9,7 @@
 <meta name="author" content="Dave Rosenman">
 <meta name="dcterms.date" content="2024-05-16">
 
-<title>Dave Rosenman - Base R Equivalents of dplyr Functions Part 1 - coalesce</title>
+<title>Dave On R - Base R Equivalents of dplyr Functions Part 1 - coalesce</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">Dave Rosenman</span>
+    <span class="navbar-title">Dave On R</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -129,15 +129,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+    <a class="nav-link" href="https://www.linkedin.com/in/dave-rosenman/"> <i class="bi bi-linkedin" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+    <a class="nav-link" href="https://www.github.com/drosenman"> <i class="bi bi-github" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-blogroll" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Blogroll</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-blogroll">    
+        <li>
+    <a class="dropdown-item" href="https://www.r-bloggers.com">
+ <span class="dropdown-text">R-Bloggers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://www.tidyverse.org/blog/">
+ <span class="dropdown-text">Tidyverse Blog</span></a>
+  </li>  
+    </ul>
+  </li>
 </ul>
           </div> <!-- /navcollapse -->
           <div class="quarto-navbar-tools">
@@ -266,10 +281,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>Unit: milliseconds
                     expr      min       lq      mean   median       uq      max
-        fcoalesce(x, 0L)  16.3749  16.5654  19.12494  17.3630  17.6809  27.6405
-         coalesce(x, 0L) 343.9034 347.0792 377.56370 356.1268 365.5551 475.1540
-       replace_na(x, 0L)  43.2243  44.5733  63.38044  48.5045  69.4544 111.1457
- ifelse(is.na(x), 0L, x) 194.8981 207.7833 224.60976 230.3110 235.5494 254.5070
+        fcoalesce(x, 0L)  14.4582  16.1549  18.47224  18.5650  19.1356  24.0475
+         coalesce(x, 0L) 285.4586 289.1238 318.36890 292.7322 297.1620 427.3679
+       replace_na(x, 0L)  37.2726  41.0626  51.48104  41.4943  52.0923  85.4834
+ ifelse(is.na(x), 0L, x) 168.9397 178.8357 191.00360 180.9929 186.2458 240.0039
  neval
      5
      5
@@ -277,7 +292,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
      5</code></pre>
 </div>
 </div>
-<p><code>data.table:fcoalesce</code> is the winner in terms of speed, followed by <code>replace_na</code>. I still tend to use <code>coalesce</code> for replacing all <code>NA</code> values in a vector with a single, specific value. I am the only person on my work team who uses R, but my team members use SQL and recognize the name <code>coalesce</code> in my code. For small to medium-sized vectors, each function runs super quickly. Also, of the four methods above, <code>coalesce</code> and <code>fcoalesce</code> are the most general, since they are not limited to replacing all <code>NA</code> values with a single value.</p>
+<p><code>data.table:fcoalesce</code> is the winner in terms of speed, followed by <code>replace_na</code>. Of the four methods above, <code>coalesce</code> and <code>fcoalesce</code> are the most general, since they are not limited to replacing all <code>NA</code> values with a single value.</p>
 <p>Is there a base R equivalent to <code>dplyr::coalesce</code>? No.&nbsp;But we can easily create one using just base R code.</p>
 <p>To think about how we would do that, let’s start with two vectors:</p>
 <div class="cell">
@@ -368,9 +383,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">microbenchmark</span>(<span class="fu">coalesce</span>(x, y, z), <span class="fu">coalesce_base_r</span>(x, y, z), <span class="at">times =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Unit: milliseconds
-                     expr      min       lq     mean   median       uq      max
-        coalesce(x, y, z) 376.6042 392.5365 416.4361 428.5157 434.7934 449.7308
- coalesce_base_r(x, y, z) 418.2767 431.8829 463.2052 479.6486 485.1584 501.0595
+                     expr      min       lq     mean   median       uq     max
+        coalesce(x, y, z) 299.6434 321.6311 355.9083 357.0767 385.4815 415.709
+ coalesce_base_r(x, y, z) 349.0094 406.5152 400.0490 412.2628 413.9706 418.487
  neval
      5
      5</code></pre>
@@ -432,13 +447,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>Unit: milliseconds
                      expr      min       lq      mean   median       uq
-       fcoalesce(x, y, z)  19.5898  20.7017  21.54968  20.9869  21.5736
-        coalesce(x, y, z) 351.6959 404.2627 416.54084 428.4123 447.8448
- coalesce_base_r(x, y, z) 438.8326 465.1925 479.04260 471.8438 491.8341
+       fcoalesce(x, y, z)  16.9233  17.5952  19.12082  17.6570  19.5384
+        coalesce(x, y, z) 304.2171 321.0251 343.79622 355.3758 358.6747
+ coalesce_base_r(x, y, z) 344.0853 357.0263 383.64736 386.5437 388.1294
       max neval
-  24.8964     5
- 450.4885     5
- 527.5100     5</code></pre>
+  23.8902     5
+ 379.6884     5
+ 442.4521     5</code></pre>
 </div>
 </div>
 <p><code>data.table::fcoalesce</code> is the clear winner when it comes to speed! Our function is almost identical in speed to <code>dplyr::coalesce</code>!</p>
@@ -527,7 +542,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   });
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp('/' + window.location.host + '/');
+      var filterRegex = new RegExp("https:\/\/www\.daveonr\.com");
     var isInternal = (href) => {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }

@@ -2,18 +2,24 @@ project:
   type: website
 
 website:
-  title: "Dave Rosenman"
+  title: "Dave On R"
+  description: "Insights and tutorials on R"
+  site-url: https://www.daveonr.com
   navbar:
     right:
       - about.qmd
+      - icon: linkedin
+        href: https://www.linkedin.com/in/dave-rosenman/
       - icon: github
-        href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
+        href: "https://www.github.com/drosenman"
+      - text: "Blogroll"
+        menu:
+          - text: "R-Bloggers"
+            href: "https://www.r-bloggers.com"
+          - text: "Tidyverse Blog"
+            href: "https://www.tidyverse.org/blog/"
+feed: true  # Enable RSS feed
 format:
   html:
     theme: cosmo
     css: styles.css
-
-editor: visual
-

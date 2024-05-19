@@ -78,7 +78,7 @@ microbenchmark(
   )
 ```
 
-`data.table:fcoalesce` is the winner in terms of speed, followed by `replace_na`. I still tend to use `coalesce` for replacing all `NA` values in a vector with a single, specific value. I am the only person on my work team who uses R, but my team members use SQL and recognize the name `coalesce` in my code.  For small to medium-sized vectors, each function runs super quickly. Also, of the four methods above, `coalesce` and `fcoalesce` are the most general, since they are not limited to replacing all `NA` values with a single value.
+`data.table:fcoalesce` is the winner in terms of speed, followed by `replace_na`. Of the four methods above, `coalesce` and `fcoalesce` are the most general, since they are not limited to replacing all `NA` values with a single value.
 
 Is there a base R equivalent to `dplyr::coalesce`? No. But we can easily create one using just base R code.
 
